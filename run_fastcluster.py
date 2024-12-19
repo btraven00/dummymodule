@@ -51,13 +51,13 @@ def do_benchmark_fastcluster(X, k, linkage):
 def main():
     parser = argparse.ArgumentParser(description='clustbench fastcluster runner')
 
-    parser.add_argument('--data_matrix', type=str,
+    parser.add_argument('--data.matrix', type=str,
                         help='gz-compressed textfile containing the comma-separated data to be clustered.', required = True)
     parser.add_argument('--k', type=int,
                         help='k.', required = True)
     parser.add_argument('--output_dir', type=str,
-                        help='output directory to store data files.', default=os.getcwd())
-    parser.add_argument('--name', type=str, help='name of this module', default='fastcluster')
+                        help='output directory to store data files.')
+    parser.add_argument('--name', type=str, help='name of the dataset', default='clustbench')
     parser.add_argument('--linkage', type=str,
                         help='fastcluster linkage',
                         required = True)
