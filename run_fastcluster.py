@@ -2,8 +2,6 @@
 
 """
 Omnibenchmark-izes Markek Gagolewski's https://github.com/gagolews/clustering-results-v1/blob/eae7cc00e1f62f93bd1c3dc2ce112fda61e57b58/.devel/do_benchmark_fastcluster.py
-
-Caution it receives a max_k K param and writes as many output clusterings (effective ks) as 2:max(k)
 """
 
 import argparse
@@ -26,10 +24,9 @@ def load_dataset(data_file):
 
 ## author Marek Gagolewski
 ## https://github.com/gagolews/clustering-results-v1/blob/eae7cc00e1f62f93bd1c3dc2ce112fda61e57b58/.devel/do_benchmark_fastcluster.py#L33C1-L58C15
-def do_benchmark_fastcluster(X, max_K, linkage):
-    Ks = list(range(2, max_K+1))
+def do_benchmark_fastcluster(X, k, linkage):
     res = dict()
-    for K in Ks: res[K] = dict()
+    #for K in Ks: res[K] = dict()
     # method = "fastcluster_%s"%linkage
 
     # print(" >:", end="", flush=True)
@@ -44,10 +41,9 @@ def do_benchmark_fastcluster(X, max_K, linkage):
     # correction for the departures from ultrametricity -- cut_tree needs this.
     linkage_matrix[:,2] = np.maximum.accumulate(linkage_matrix[:,2])
     labels_pred_matrix = scipy.cluster.hierarchy.\
-        cut_tree(linkage_matrix, n_clusters=Ks)+1 # 0-based -> 1-based!!!
-
-    for k in range(len(Ks)):
-        res[Ks[k]] = labels_pred_matrix[:,k]
+        cut_tree(linkage_matrix, n_clusters=k)+1 # 0-based -> 1-based!!!
+    
+    res = labels_pred_matrix[:k]
 
     # print(":<", end="", flush=True)
     return res
@@ -57,8 +53,8 @@ def main():
 
     parser.add_argument('--data_matrix', type=str,
                         help='gz-compressed textfile containing the comma-separated data to be clustered.', required = True)
-    parser.add_argument('--max_k', type=int,
-                        help='max_K.', required = True)
+    parser.add_argument('--k', type=int,
+                        help='k.', required = True)
     parser.add_argument('--output_dir', type=str,
                         help='output directory to store data files.', default=os.getcwd())
     parser.add_argument('--name', type=str, help='name of this module', default='fastcluster')
@@ -75,13 +71,11 @@ def main():
     if args.linkage not in VALID_LINKAGE:
         raise ValueError(f"Invalid linkage `{args.linkage}`")
     
-    res = do_benchmark_fastcluster(X= load_dataset(args.data_matrix), max_K = args.max_k, linkage = args.linkage)
+    curr = do_benchmark_fastcluster(X= load_dataset(args.data_matrix), k = args.k, linkage = args.linkage)
 
     name = args.name
     
-    for k in res.keys():
-        curr = res[k]
-        np.savetxt(os.path.join(args.output_dir, f"{name}_{k}.labels.gz"), curr.astype(int), fmt='%i', delimiter=",")
+    np.savetxt(os.path.join(args.output_dir, f"{name}.labels.gz"), curr.astype(int), fmt='%i', delimiter=",")
  
 
 if __name__ == "__main__":
