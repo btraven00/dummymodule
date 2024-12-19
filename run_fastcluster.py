@@ -70,8 +70,9 @@ def main():
 
     if args.linkage not in VALID_LINKAGE:
         raise ValueError(f"Invalid linkage `{args.linkage}`")
-    
-    curr = do_benchmark_fastcluster(X= load_dataset(args.data_matrix), k = args.k, linkage = args.linkage)
+
+    data = getattr(args, 'data.matrix')
+    curr = do_benchmark_fastcluster(X= load_dataset(data), k = args.k, linkage = args.linkage)
 
     name = args.name
     
