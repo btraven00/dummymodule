@@ -1,8 +1,16 @@
+#!/usr/bin/env python
+
+"""
+Omnibenchmark-izes Markek Gagolewski's https://github.com/gagolews/clustering-results-v1/blob/eae7cc00e1f62f93bd1c3dc2ce112fda61e57b58/.devel/do_benchmark_fastcluster.py
+
+Caution it receives a max_k K param and writes as many output clusterings (effective ks) as 2:max(k)
+"""
+
 import argparse
 import os, sys
 import fastcluster
 import numpy as np
-#import scipy.cluster.hierarchy
+import scipy.cluster.hierarchy
 
 VALID_LINKAGE = ['complete', 'average', 'weighted', 'median', 'ward', 'centroid']
 
@@ -22,16 +30,16 @@ def do_benchmark_fastcluster(X, max_K, linkage):
     Ks = list(range(2, max_K+1))
     res = dict()
     for K in Ks: res[K] = dict()
-    method = "fastcluster_%s"%linkage
+    # method = "fastcluster_%s"%linkage
 
-    print(" >:", end="", flush=True)
+    # print(" >:", end="", flush=True)
 
     if linkage in ["median", "ward", "centroid"]:
         linkage_matrix = fastcluster.linkage_vector(X, method=linkage)
     else: # these compute the whole distance matrix
         linkage_matrix = fastcluster.linkage(X, method=linkage)
 
-    print(".", end="", flush=True)
+    # print(".", end="", flush=True)
 
     # correction for the departures from ultrametricity -- cut_tree needs this.
     linkage_matrix[:,2] = np.maximum.accumulate(linkage_matrix[:,2])
@@ -39,9 +47,9 @@ def do_benchmark_fastcluster(X, max_K, linkage):
         cut_tree(linkage_matrix, n_clusters=Ks)+1 # 0-based -> 1-based!!!
 
     for k in range(len(Ks)):
-        res[Ks[k]][method] = labels_pred_matrix[:,k]
+        res[Ks[k]] = labels_pred_matrix[:,k]
 
-    print(":<", end="", flush=True)
+    # print(":<", end="", flush=True)
     return res
 
 def main():
@@ -68,7 +76,12 @@ def main():
         raise ValueError(f"Invalid linkage `{args.linkage}`")
     
     res = do_benchmark_fastcluster(X= load_dataset(args.data_matrix), max_K = args.max_k, linkage = args.linkage)
-    print(res)
+
+    name = args.name
+    
+    for k in res.keys():
+        curr = res[k]
+        np.savetxt(os.path.join(args.output_dir, f"{name}_{k}.labels.gz"), curr.astype(int), fmt='%i', delimiter=",")
  
 
 if __name__ == "__main__":
