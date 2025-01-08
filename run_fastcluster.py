@@ -2,6 +2,8 @@
 
 """
 Omnibenchmark-izes Markek Gagolewski's https://github.com/gagolews/clustering-results-v1/blob/eae7cc00e1f62f93bd1c3dc2ce112fda61e57b58/.devel/do_benchmark_fastcluster.py
+
+Takes the true number of clusters into account
 """
 
 import argparse
@@ -11,6 +13,14 @@ import numpy as np
 import scipy.cluster.hierarchy
 
 VALID_LINKAGE = ['complete', 'average', 'weighted', 'median', 'ward', 'centroid']
+
+def load_labels(data_file):
+    data = np.loadtxt(data_file, ndmin=1)
+    
+    if data.ndim != 1:
+        raise ValueError("Invalid data structure, not a 1D matrix?")
+
+    return(data)
 
 def load_dataset(data_file):
     data = np.loadtxt(data_file, ndmin=2)
@@ -53,8 +63,8 @@ def main():
 
     parser.add_argument('--data.matrix', type=str,
                         help='gz-compressed textfile containing the comma-separated data to be clustered.', required = True)
-    parser.add_argument('--k', type=int,
-                        help='k.', required = True)
+    parser.add_argument('--data.true_labels', type=str,
+                        help='gz-compressed textfile with the true labels; used to select a range of ks.', required = True)
     parser.add_argument('--output_dir', type=str,
                         help='output directory to store data files.')
     parser.add_argument('--name', type=str, help='name of the dataset', default='clustbench')
@@ -71,8 +81,11 @@ def main():
     if args.linkage not in VALID_LINKAGE:
         raise ValueError(f"Invalid linkage `{args.linkage}`")
 
+    truth = load_labels(getattr(args, 'data.true_labels'))
+    k = int(max(truth)) # true number of clusters
+    
     data = getattr(args, 'data.matrix')
-    curr = do_benchmark_fastcluster(X= load_dataset(data), k = args.k, linkage = args.linkage)
+    curr = do_benchmark_fastcluster(X= load_dataset(data), k = k, linkage = args.linkage)
 
     name = args.name
     
