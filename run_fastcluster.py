@@ -43,7 +43,7 @@ def do_benchmark_fastcluster(X, k, linkage):
     labels_pred_matrix = scipy.cluster.hierarchy.\
         cut_tree(linkage_matrix, n_clusters=k)+1 # 0-based -> 1-based!!!
     
-    res = labels_pred_matrix[:k]
+    res = labels_pred_matrix#[:k]
 
     # print(":<", end="", flush=True)
     return res
