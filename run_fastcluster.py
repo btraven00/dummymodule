@@ -3,7 +3,8 @@
 """
 Omnibenchmark-izes Markek Gagolewski's https://github.com/gagolews/clustering-results-v1/blob/eae7cc00e1f62f93bd1c3dc2ce112fda61e57b58/.devel/do_benchmark_fastcluster.py
 
-Takes the true number of clusters into account
+Takes the true number of clusters into account and outputs a 2D matrix with as many columns as ks tested,
+being true number of clusters `k` and tested range `k plusminus 2`
 """
 
 import argparse
@@ -66,12 +67,9 @@ def do_benchmark_fastcluster_range_ks(X, Ks, linkage):
     
     # correction for the departures from ultrametricity -- cut_tree needs this.
     linkage_matrix[:,2] = np.maximum.accumulate(linkage_matrix[:,2])
-    labels_pred_matrix = scipy.cluster.hierarchy.\
+    res = scipy.cluster.hierarchy.\
         cut_tree(linkage_matrix, n_clusters=Ks)+1 # 0-based -> 1-based!!!
 
-    for k in range(len(Ks)):
-        res[Ks[k]] = labels_pred_matrix[:,k]
-    
     return res
 
 def main():
@@ -106,14 +104,13 @@ def main():
 
     name = args.name
 
-    ## results naming as compared to the true number of clusters
-    keys = [key for key in curr.keys()]
-    np.savetxt(os.path.join(args.output_dir, f"{name}_true_k_minus_2.labels.gz"), curr[keys[0]].astype(int), fmt='%i', delimiter=",")
-    np.savetxt(os.path.join(args.output_dir, f"{name}_true_k_minus_1.labels.gz"), curr[keys[1]].astype(int), fmt='%i', delimiter=",")
-    np.savetxt(os.path.join(args.output_dir, f"{name}_true_k.labels.gz"), curr[keys[2]].astype(int), fmt='%i', delimiter=",")
-    np.savetxt(os.path.join(args.output_dir, f"{name}_true_k_plus_1.labels.gz"), curr[keys[3]].astype(int), fmt='%i', delimiter=",")
-    np.savetxt(os.path.join(args.output_dir, f"{name}_true_k_plus_2.labels.gz"), curr[keys[4]].astype(int), fmt='%i', delimiter=",")
- 
+    header=['k=%s'%s for s in Ks]
+
+
+    curr = np.append(np.array(header).reshape(1,5), curr.astype(str), axis=0)
+    np.savetxt(os.path.join(args.output_dir, f"{name}_ks_range.labels.gz"),
+               curr, fmt='%s', delimiter=",")#,
+               # header = ','.join(header)) 
 
 if __name__ == "__main__":
     main()
