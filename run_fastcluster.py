@@ -19,34 +19,29 @@ def load_labels(data_file):
     
     if data.ndim != 1:
         raise ValueError("Invalid data structure, not a 1D matrix?")
-
+    
     return(data)
 
 def load_dataset(data_file):
     data = np.loadtxt(data_file, ndmin=2)
-
+    
     ##data.reset_index(drop=True,inplace=True)
     
     if data.ndim != 2:
         raise ValueError("Invalid data structure, not a 2D matrix?")
-
+    
     return(data)
 
+## modified from
 ## author Marek Gagolewski
 ## https://github.com/gagolews/clustering-results-v1/blob/eae7cc00e1f62f93bd1c3dc2ce112fda61e57b58/.devel/do_benchmark_fastcluster.py#L33C1-L58C15
-def do_benchmark_fastcluster(X, k, linkage):
+def do_benchmark_fastcluster_single_k(X, ks, linkage):
     res = dict()
-    #for K in Ks: res[K] = dict()
-    # method = "fastcluster_%s"%linkage
-
-    # print(" >:", end="", flush=True)
-
+    
     if linkage in ["median", "ward", "centroid"]:
         linkage_matrix = fastcluster.linkage_vector(X, method=linkage)
     else: # these compute the whole distance matrix
         linkage_matrix = fastcluster.linkage(X, method=linkage)
-
-    # print(".", end="", flush=True)
 
     # correction for the departures from ultrametricity -- cut_tree needs this.
     linkage_matrix[:,2] = np.maximum.accumulate(linkage_matrix[:,2])
@@ -54,8 +49,29 @@ def do_benchmark_fastcluster(X, k, linkage):
         cut_tree(linkage_matrix, n_clusters=k)+1 # 0-based -> 1-based!!!
     
     res = labels_pred_matrix#[:k]
+    
+    return res
 
-    # print(":<", end="", flush=True)
+## modified from
+## author Marek Gagolewski
+## https://github.com/gagolews/clustering-results-v1/blob/eae7cc00e1f62f93bd1c3dc2ce112fda61e57b58/.devel/do_benchmark_fastcluster.py#L33C1-L58C15
+def do_benchmark_fastcluster_range_ks(X, Ks, linkage):
+    res = dict()
+    for K in Ks: res[K] = dict()
+    
+    if linkage in ["median", "ward", "centroid"]:
+        linkage_matrix = fastcluster.linkage_vector(X, method=linkage)
+    else: # these compute the whole distance matrix
+        linkage_matrix = fastcluster.linkage(X, method=linkage)
+    
+    # correction for the departures from ultrametricity -- cut_tree needs this.
+    linkage_matrix[:,2] = np.maximum.accumulate(linkage_matrix[:,2])
+    labels_pred_matrix = scipy.cluster.hierarchy.\
+        cut_tree(linkage_matrix, n_clusters=Ks)+1 # 0-based -> 1-based!!!
+
+    for k in range(len(Ks)):
+        res[Ks[k]] = labels_pred_matrix[:,k]
+    
     return res
 
 def main():
@@ -83,13 +99,20 @@ def main():
 
     truth = load_labels(getattr(args, 'data.true_labels'))
     k = int(max(truth)) # true number of clusters
+    Ks = [k-2, k-1, k, k+1, k+2] # ks tested, including the true number
     
     data = getattr(args, 'data.matrix')
-    curr = do_benchmark_fastcluster(X= load_dataset(data), k = k, linkage = args.linkage)
+    curr = do_benchmark_fastcluster_range_ks(X= load_dataset(data), Ks = Ks, linkage = args.linkage)
 
     name = args.name
-    
-    np.savetxt(os.path.join(args.output_dir, f"{name}.labels.gz"), curr.astype(int), fmt='%i', delimiter=",")
+
+    ## results naming as compared to the true number of clusters
+    keys = [key for key in curr.keys()]
+    np.savetxt(os.path.join(args.output_dir, f"{name}_true_k_minus_2.labels.gz"), curr[keys[0]].astype(int), fmt='%i', delimiter=",")
+    np.savetxt(os.path.join(args.output_dir, f"{name}_true_k_minus_1.labels.gz"), curr[keys[1]].astype(int), fmt='%i', delimiter=",")
+    np.savetxt(os.path.join(args.output_dir, f"{name}_true_k.labels.gz"), curr[keys[2]].astype(int), fmt='%i', delimiter=",")
+    np.savetxt(os.path.join(args.output_dir, f"{name}_true_k_plus_1.labels.gz"), curr[keys[3]].astype(int), fmt='%i', delimiter=",")
+    np.savetxt(os.path.join(args.output_dir, f"{name}_true_k_plus_2.labels.gz"), curr[keys[4]].astype(int), fmt='%i', delimiter=",")
  
 
 if __name__ == "__main__":
