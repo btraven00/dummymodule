@@ -6,6 +6,8 @@ Useful for debugging; i.e. to make modules return arbitrary failures, sleep, etc
 """
 
 import sys
+import os
+from pathlib import Path
 from typing import Dict, List, Optional
 
 def parse_gnu_style_args(argv: List[str] = None) -> Dict[str, Optional[str]]:
@@ -47,6 +49,13 @@ def handle_args(**kwargs):
     fail = kwargs.get('fail', None)
     if fail is not None:
         raise RuntimeError('failing hard')
+
+    out = kwargs.get('output', None)
+    if out is not None:
+        parent = Path(out).parent
+        os.makedirs(parent, exist_ok=True)
+        with open(out, 'w') as out_f:
+            out_f.write("A" * 32)
 
     ok = kwargs.get('ok', None)
     if ok is not None:
