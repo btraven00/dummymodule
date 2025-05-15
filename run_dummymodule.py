@@ -50,11 +50,17 @@ def handle_args(**kwargs):
     if fail is not None:
         raise RuntimeError('failing hard')
 
+    out_dir = kwargs.get('output_dir', '.')
+    print("out_dir:", out_dir)
+    os.makedirs(out_dir, exist_ok=True)
+
     out = kwargs.get('output', None)
     if out is not None:
         parent = Path(out).parent
+        if out_dir is not None:
+            parent = out_dir / parent
         os.makedirs(parent, exist_ok=True)
-        with open(out, 'w') as out_f:
+        with open(Path(parent / Path(out).name).as_posix(), 'w') as out_f:
             out_f.write("A" * 32)
 
     ok = kwargs.get('ok', None)
