@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "OmniBenchmark Dummy Module"
+version: "1.0.0"
+date-released: "2025-01-15"
+url: "https://github.com/example/omnibenchmark-dummy-module"
+repository-code: "https://github.com/example/omnibenchmark-dummy-module"
+authors:
+  - family-names: "Smith"
+    given-names: "Jane"
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+    email: "jane.smith@example.org"
+  - family-names: "Doe"
+    given-names: "John"
+    orcid: "https://orcid.org/0000-0000-0000-0001"
+    email: "john.doe@example.org"
+abstract: "A dummy benchmark module for testing citation metadata extraction in OmniBenchmark workflows."
+keywords:
+  - bioinformatics
+  - benchmarking
+  - reproducible-research
+  - computational-biology
+license: MIT
+doi: "10.5281/zenodo.1234567"
