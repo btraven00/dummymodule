@@ -78,6 +78,18 @@ def handle_args(**kwargs):
     print("out_dir:", out_dir)
     os.makedirs(out_dir, exist_ok=True)
 
+    # Handle --name parameter to create {name}_data.json files
+    if (name := kwargs.get("name", None)) is not None:
+        filename = f"{name}_data.json"
+        output_path = Path(out_dir) / filename
+        print(f"Writing output to: {output_path}")
+
+        with open(output_path, "w") as out_f:
+            if payload is None:
+                out_f.write(serialize("A" * 32, None))
+            else:
+                out_f.write(serialize(payload, None))
+
     if (out := kwargs.get("output", None)) is not None:
         parent = Path(out).parent
         if out_dir is not None:
