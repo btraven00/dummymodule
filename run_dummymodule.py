@@ -61,6 +61,20 @@ def handle_args(**kwargs):
 
     print("HANDLING", kwargs)
 
+    # Write all passed flags to cli.txt
+    output_dir = kwargs.get("output_dir", ".")
+    cli_file_path = Path(output_dir) / "cli.txt"
+
+    # Ensure output directory exists
+    os.makedirs(output_dir, exist_ok=True)
+
+    with open(cli_file_path, "w") as cli_file:
+        for flag, value in kwargs.items():
+            if value is None:
+                cli_file.write(f"--{flag}\n")
+            else:
+                cli_file.write(f"--{flag} {value}\n")
+
     if kwargs.get("fail", None) is not None:
         raise RuntimeError("failing hard")
 
