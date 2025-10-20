@@ -77,12 +77,6 @@ def handle_failure_flag(kwargs: Dict[str, Optional[str]]) -> None:
 
 def handle_evaluation(kwargs: Dict[str, Optional[str]]) -> Optional[int]:
     """Handle expression evaluation and return the result."""
-    collector = kwargs.get("collector", None)
-
-    if collector is not None:
-        print("collector")
-        result = {"avg": 120, "max": 125}
-        return result
 
     evaluate = kwargs.get("evaluate")
     if evaluate is None:
@@ -106,12 +100,14 @@ def write_named_output(name: str, output_dir: str, payload: Optional[int]) -> No
 
     with open(output_path, "w") as out_f:
         if payload is None:
-            out_f.write(serialize("A" * 32, None))
+            out_f.write(serialize("O" * 32, None))
         else:
             out_f.write(serialize(payload, None))
 
 
-def write_generic_output(output_path: str, output_dir: str, payload: Optional[int]) -> None:
+def write_generic_output(
+    output_path: str, output_dir: str, payload: Optional[int]
+) -> None:
     """Write output to a generic output file."""
     parent = Path(output_path).parent
     if output_dir != ".":
@@ -202,7 +198,9 @@ def resolve_input_value(kwargs: Dict[str, Optional[str]]) -> str:
     # Get the file path from the flag with the same name as input_spec
     file_path = kwargs.get(input_spec)
     if file_path is None:
-        raise ValueError(f"Flag --{input_spec} is required when using --input {input_spec}")
+        raise ValueError(
+            f"Flag --{input_spec} is required when using --input {input_spec}"
+        )
 
     # The file_path is used directly
 
@@ -225,7 +223,9 @@ def resolve_input_value(kwargs: Dict[str, Optional[str]]) -> str:
         raise ValueError(f"Invalid JSON in file {file_path}")
     except (ValueError, TypeError) as e:
         if "invalid literal for int()" in str(e):
-            raise ValueError(f"Result field in {file_path} is not a valid integer: {result}")
+            raise ValueError(
+                f"Result field in {file_path} is not a valid integer: {result}"
+            )
         raise
 
 
