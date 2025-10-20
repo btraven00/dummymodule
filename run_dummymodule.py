@@ -92,9 +92,11 @@ def handle_evaluation(kwargs: Dict[str, Optional[str]]) -> Optional[int]:
         raise
 
 
-def write_named_output(name: str, output_dir: str, payload: Optional[int]) -> None:
-    """Write output to {name}_data.json file."""
-    filename = f"{name}_data.json"
+def write_named_output(
+    name: str, output_dir: str, payload: Optional[int], kind: str = "data"
+) -> None:
+    """Write output to {name}_{kind}.json file."""
+    filename = f"{name}_{kind}.json"
     output_path = Path(output_dir) / filename
     print(f"Writing output to: {output_path}")
 
@@ -163,7 +165,8 @@ def handle_args(**kwargs):
     # Handle --name parameter output
     name = kwargs.get("name")
     if name is not None:
-        write_named_output(name, output_dir, payload)
+        kind = kwargs.get("kind", "data")
+        write_named_output(name, output_dir, payload, kind)
 
     # Handle --output parameter
     output_path = kwargs.get("output")
